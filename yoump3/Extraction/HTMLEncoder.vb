@@ -16,6 +16,9 @@ Namespace Extraction
             HtmlDecode(s, output)
             Return sb.ToString()
         End Function
+        
+
+
 
         Public Shared Sub HtmlDecode(s As String, output As TextWriter)
             If Not s Is Nothing Then

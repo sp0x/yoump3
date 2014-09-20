@@ -6,6 +6,8 @@ Imports System.Text.RegularExpressions
 Imports Newtonsoft.Json.Linq
 Imports yoump3.STD
 Imports yoump3.Extraction
+Imports yoump3.Extensions.UrlExtensions
+
 Imports System.Text.Encoding
 
 
@@ -74,7 +76,7 @@ Namespace Extraction
             End If
             Try
 
-                Dim json = LoadJson(videoUrl)
+                Dim json = LoadYTPlayerJson(videoUrl)
                 Dim videoTitle As String = GetVideoTitle(json)
                 Dim downloadUrls As IEnumerable(Of ExtractionInfo) = ExtractDownloadUrls(json)
                 Dim infos As IEnumerable(Of VideoCodecInfo) = GetVideoInfos(downloadUrls, videoTitle).ToList()
@@ -153,15 +155,17 @@ End Function
                     url = queries("url")
                 End If
                 url = HtmlDecoder.Decode(url)
+                url = url.Urldecode
                 output.Add(New ExtractionInfo With {.RequiresDecryption = requiresDecryption, .Uri = New Uri(url)})
             Next
+            Return output
         End Function
 
         Private Shared Function GetAdaptiveStreamMap(json As JObject) As String
             Dim streamMap As JToken = json("args")("adaptive_fmts")
             Return streamMap.ToString()
         End Function
-      
+
         Private Function GetDecipheredSignature(htmlPlayerVersion As String, signature As String) As String
             If (signature.Length = CorrectSignatureLength) Then
                 Return signature
@@ -197,7 +201,7 @@ End Function
                 Dim itag As String = URLHelper.ParseQueryString(extractionInfo.Uri.Query)("itag")
                 Dim formatCode As Int32 = Int32.Parse(itag)
 
-                Dim info As VideoCodecInfo = VideoCodecInfo.Defaults.SingleOrDefault(Function(vi)  vi.FormatCode = formatCode)
+                Dim info As VideoCodecInfo = VideoCodecInfo.Defaults.SingleOrDefault(Function(vi) vi.FormatCode = formatCode)
 
                 If (info IsNot Nothing) Then
                     info = New VideoCodecInfo(info) With _
@@ -217,7 +221,7 @@ End Function
 
         Private Shared Function GetVideoTitle(json As JObject) As String
             Dim title As JToken = json("args")("title")
-            Return title = If(title Is Nothing, "", title.ToString())
+            Return If(title Is Nothing, "", title.ToString())
         End Function
 
         Private Shared Function IsVideoUnavailable(pageSource As String) As Boolean
@@ -225,15 +229,22 @@ End Function
             Return pageSource.Contains(unavailableContainer)
         End Function
 
-        Private Shared Function LoadJson(url As String) As JObject
-            Dim pageSource As String = URLHelper.DldurlTxt(url, ascii)
-
+        Private Shared Function LoadYTPlayerJson(url As String) As JObject
+            Dim pageSource As String = New WebClient() With {.Encoding = UTF8}.DownloadString(url) 'URLHelper.DldurlTxt(url, UTF8)
+            If String.IsNullOrEmpty(pageSource) Then
+                Throw New NullReferenceException("Could not fetch URL's content!")
+                Return Nothing
+            End If
             If (IsVideoUnavailable(pageSource)) Then
                 Throw New VideoNotAvailableException()
             End If
 
             Dim dataRegex As New Regex("ytplayer\.config\s*=\s*(\{.+?\});", RegexOptions.Multiline)
-            Dim extractedJson As String = dataRegex.Match(pageSource).Result("$1")
+            Dim rxMatch As Match = dataRegex.Match(pageSource)
+            If rxMatch Is Nothing Then
+                ThrowYoutubeParseException(New Exception("INVALID JSON!"), url)
+            End If
+            Dim extractedJson As String = rxMatch.Result("$1")
             Return JObject.Parse(extractedJson)
         End Function
 

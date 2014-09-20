@@ -1,27 +1,6 @@
 ﻿Imports System.IO
 Imports System.Net
 Namespace Extraction
-    ' ****************************************************************************
-    '
-    ' FLV Extract
-    ' Copyright (C) 2013-2014 Dennis Daume (daume.dennis@gmail.com)
-    '
-    ' This program is free software; you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation; either version 2 of the License, or
-    ' (at your option) any later version.
-    '
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    '
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program; if not, write to the Free Software
-    ' Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    '
-    ' ****************************************************************************
-
 
 
     ''' <summary>
@@ -73,29 +52,27 @@ Namespace Extraction
 
             Me.OnDownloadFinished(EventArgs.Empty)
         End Sub
+       
+        Protected Sub OnDownloadFinished(e As EventArgs)
+            MyBase.RaiseDownloadFinished(Me, e)
+        End Sub
 
         Private Sub DownloadVideo(path As String)
             Dim videoDownloader = New VideoDownloader(Me.Video, path, Me.BytesToDownload)
-
-            videoDownloader.DownloadProgressChanged += Function(sender, args)
-                                                           If Me.DownloadProgressChanged IsNot Nothing Then
-                                                               Me.DownloadProgressChanged(Me, args)
-
-                                                               Me.isCanceled = args.Cancel
-                                                           End If
-
-                                                       End Function
-
+            AddHandler videoDownloader.DownloadProgressChanged, _
+                Sub(sender As Object, e As ProgressEventArgs)
+                    RaiseEvent DownloadProgressChanged(Me, e)
+                    Me.isCanceled = e.Cancel
+                End Sub
             videoDownloader.Execute()
         End Sub
 
         Private Sub ExtractAudio(path As String)
             Using flvFile = New FlvFile(path, Me.SavePath)
-                flvFile.ConversionProgressChanged += Function(sender, args)
-                                                         RaiseEvent AudioExtractionProgressChanged(Me, New ProgressEventArgs(args.ProgressPercentage))
-
-                                                     End Function
-
+                AddHandler flvFile.ConversionProgressChanged, _
+                    Sub(sender As Object, e As ProgressEventArgs)
+                        RaiseEvent AudioExtractionProgressChanged(Me, New ProgressEventArgs(e.ProgressPercentage))
+                    End Sub
                 flvFile.ExtractStreams()
             End Using
         End Sub

@@ -22,7 +22,7 @@ Friend Class URLHelper
     End Function
     Public Shared Function DldurlTxt(ByVal url As String, ByVal encoder As Encoding, _
                                      Optional ByVal user As String = "", Optional ByVal pass As String = "") As String
-        If Not String.IsNullOrEmpty(url) Then Return ""
+        If String.IsNullOrEmpty(url) Then Return ""
         Dim byts() As Byte = Dldurl(url, user, pass)
         If encoder Is Nothing Then encoder = ASCIIEncoding.Unicode
         Return encoder.GetString(byts)

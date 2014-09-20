@@ -34,11 +34,18 @@ Namespace Extraction
         ''' Occurs when the download is starts.
         ''' </summary>
         Public Event DownloadStarted As EventHandler
+        Friend Sub RaiseDownloadFinished(sender As Object, e As EventArgs)
+            RaiseEvent DownloadStarted(sender, e)
+        End Sub
+        Protected Sub RaiseDownloadStarted(sender As Object, e As EventArgs)
+            RaiseEvent DownloadStarted(sender, e)
+        End Sub
+
 
         ''' <summary>
         ''' Gets the number of bytes to download. <c>null</c>, if everything is downloaded.
         ''' </summary>
-        Public Property BytesToDownload() As System.Nullable(Of Integer)
+        Public Property BytesToDownload As System.Nullable(Of Integer) = Nothing
 
         ''' <summary>
         ''' Gets the path to save the video/audio.
@@ -55,7 +62,7 @@ Namespace Extraction
         ''' </summary>
         Public MustOverride Sub Execute()
 
-
+       
     End Class
 
 

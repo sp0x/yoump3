@@ -80,20 +80,28 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Extractor\AdaptiveType.vb" />
-    <Compile Include="Extractor\AudioDownloader.vb" />
-    <Compile Include="Extractor\AudioType.vb" />
-    <Compile Include="Extractor\HTMLEncoder.vb" />
-    <Compile Include="Extractor\IAudioExtractor.vb" />
-    <Compile Include="Extractor\URLHelper.vb" />
-    <Compile Include="Extractor\VideoCodecInfo.vb" />
-    <Compile Include="Extractor\videodownloader.vb" />
-    <Compile Include="Extractor\VideoNotAvailableException.vb" />
-    <Compile Include="Extractor\VideoType.vb" />
-    <Compile Include="Extractor\Downloader.vb" />
-    <Compile Include="Extractor\YtParseException.vb" />
-    <Compile Include="Extractor\YtSignitureDecoder.vb" />
-    <Compile Include="Extractor\YtUrlDecoder.vb" />
+    <Compile Include="Extensions.vb" />
+    <Compile Include="Extraction\AacAudioExtractor.vb" />
+    <Compile Include="Extraction\AdaptiveType.vb" />
+    <Compile Include="Extraction\AudioDownloader.vb" />
+    <Compile Include="Extraction\AudioExtractionException.vb" />
+    <Compile Include="Extraction\AudioType.vb" />
+    <Compile Include="Extraction\BigEndianBitConverter.vb" />
+    <Compile Include="Extraction\BitHelper.vb" />
+    <Compile Include="Extraction\Downloader.vb" />
+    <Compile Include="Extraction\FlvFile.vb" />
+    <Compile Include="Extraction\HTMLEncoder.vb" />
+    <Compile Include="Extraction\IAudioExtractor.vb" />
+    <Compile Include="Extraction\MP3AudioExtractor.vb" />
+    <Compile Include="Extraction\ProgressEventArgs.vb" />
+    <Compile Include="Extraction\URLHelper.vb" />
+    <Compile Include="Extraction\VideoCodecInfo.vb" />
+    <Compile Include="Extraction\VideoDownloader.vb" />
+    <Compile Include="Extraction\VideoNotAvailableException.vb" />
+    <Compile Include="Extraction\VideoType.vb" />
+    <Compile Include="Extraction\YtParseException.vb" />
+    <Compile Include="Extraction\YtSignitureDecoder.vb" />
+    <Compile Include="Extraction\YtUrlDecoder.vb" />
     <Compile Include="Settings.vb" />
     <Compile Include="STD.vb" />
     <Compile Include="Youtube.vb" />
