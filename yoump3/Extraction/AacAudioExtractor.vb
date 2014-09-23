@@ -3,19 +3,26 @@
 Namespace Extraction
     Friend Class AacAudioExtractor
         Implements IAudioExtractor
-        Private ReadOnly fileStream As FileStream
+        Private fileStream As FileStream
         Private aacProfile As Integer
         Private channelConfig As Integer
         Private sampleRateIndex As Integer
 
         Public Sub New(path As String)
-            Me.VideoPath = path
+            'Me.VideoPath = path
             fileStream = New FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024)
         End Sub
 
-        Public Property VideoPath() As String Implements IAudioExtractor.VideoPath
+        'Public Property VideoPath() As String Implements IAudioExtractor.VideoPath
 
-
+        Public Property VideoStream As FileStream Implements IAudioExtractor.VideoStream
+            Get
+                Return fileStream
+            End Get
+            Set(value As FileStream)
+                fileStream = value
+            End Set
+        End Property
         Public Sub Dispose() Implements IAudioExtractor.Dispose
             Me.fileStream.Dispose()
         End Sub

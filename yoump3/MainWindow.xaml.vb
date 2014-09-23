@@ -66,10 +66,18 @@ Class MainWindow
                                                                        Trace.WriteLine(String.Format("audio({0})", x))
                                                                    End Sub
         
-        audioDownloader.Execute()
+        audioDownloader.StartDownloading()
     End Sub
-
+   
     Public Sub lded() Handles Me.Loaded
+        Dim somevar As UInt64 = &HFFFFFFFFFFFFFFFEUL
+        Dim buff As Byte() = New Byte(1024) {}
+        Dim ms As New MemoryStream(buff)
+        Dim bwr As New BinaryWriter(ms)
+        Dim gig = BitConverter.IsLittleEndian
+        bwr.Write(somevar) ' this should pass into uint
+        buff = ms.ToArray
+
         'Dim timx As New TimeCounter(DateTime.Now.AddDays(3))
         'timx.addUpdateMinutes(10)
         'Dim t As New task(Async Sub()

@@ -32,7 +32,7 @@ Public Class VideoDownloader
     ''' </summary>
     ''' <exception cref="IOException">The video file could not be saved.</exception>
     ''' <exception cref="WebException">An error occured while downloading the video.</exception>
-        Public Overrides Sub Execute()
+        Public Overrides Sub StartDownloading()
 
             MyBase.RaiseDownloadStarted(Me, EventArgs.Empty)
 
@@ -45,7 +45,7 @@ Public Class VideoDownloader
             ' the following code is alternative, you may implement the function after your needs
             Using response As WebResponse = request.GetResponse()
                 Using source As Stream = response.GetResponseStream()
-                    Using target As FileStream = File.Open(Me.SavePath, FileMode.Create, FileAccess.Write)
+                    Using target As FileStream = File.Open(Me.AudioPath, FileMode.Create, FileAccess.Write)
                         Dim buffer As Byte() = New Byte(1024) {}
                         Dim cancel As Boolean = False
                         Dim bytes As Integer

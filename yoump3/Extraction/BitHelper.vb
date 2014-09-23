@@ -45,12 +45,9 @@
             Dim skipBits As Integer = offset Mod 8
             Dim bits As ULong = 0
 
-            Dim i As Integer = 0
-            While i <= Math.Min(endByte - startByte, 7)
+            For i As Int32 = 0 To Math.Min(endByte - startByte, 7)
                 bits = bits Or bytes(startByte + i) << 56 - i * 8
-                System.Math.Max(System.Threading.Interlocked.Increment(i), i - 1)
-            End While
-
+            Next
             If skipBits <> 0 Then
                 Read(bits, skipBits)
             End If

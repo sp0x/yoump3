@@ -25,6 +25,7 @@ Namespace Extraction
     ' ****************************************************************************
     Friend Class FlvFile
         Implements IDisposable
+#Region "Variables"
         Private ReadOnly fileLength As Long
         Private ReadOnly inputPath As String
         Private ReadOnly outputPath As String
@@ -33,7 +34,7 @@ Namespace Extraction
         Private fileStream As FileStream
         Public Event ConversionProgressChanged As EventHandler(Of ProgressEventArgs)
         Public Property ExtractedAudio() As Boolean
-
+#End Region
 
 #Region "Construction"
         ''' <summary>
@@ -50,34 +51,56 @@ Namespace Extraction
         End Sub
 #End Region
 
-       
+#Region "Disposition"
         Public Sub Dispose() Implements IDisposable.Dispose
             Me.Dispose(True)
             GC.SuppressFinalize(Me)
         End Sub
+        Private Sub Dispose(disposing As Boolean)
+            If disposing Then
+                If Not Me.fileStream Is Nothing Then
+                    Me.fileStream.Close()
+                    Me.fileStream = Nothing
+                End If
+
+                Me.CloseOutput(True)
+            End If
+        End Sub
+        Private Sub CloseOutput(disposing As Boolean)
+            If audioExtractor Is Nothing Then Return
+            Dim fpath As String = audioExtractor.VideoStream.Name
+            If Not Me.audioExtractor Is Nothing Then
+                If Not disposing AndAlso fpath Is Nothing Then
+                    Try
+                        File.Delete(fpath)
+                    Catch
+                    End Try
+                End If
+
+                Me.audioExtractor.Dispose()
+                Me.audioExtractor = Nothing
+            End If
+        End Sub
+#End Region
+
+
         Friend Const FLV_FILE_TAG As Int32 = &H464C5601
 
         ''' <exception cref="AudioExtractionException">The input file is not an FLV file.</exception>
         Public Sub ExtractStreams()
             Me.Seek(0)
-
             If Me.ReadUInt32() <> FLV_FILE_TAG Then
                 ' not a FLV file
                 Throw New AudioExtractionException("Invalid input file. Impossible to extract audio track.")
             End If
-
             Me.ReadUInt8()
             Dim dataOffset As UInteger = Me.ReadUInt32()
-
             Me.Seek(dataOffset)
-
             Me.ReadUInt32()
-
             While fileOffset < fileLength
                 If Not ReadTag() Then
                     Exit While
                 End If
-
                 If fileLength - fileOffset < 4 Then
                     Exit While
                 End If
@@ -91,72 +114,37 @@ Namespace Extraction
             Me.CloseOutput(False)
         End Sub
 
-        Private Sub CloseOutput(disposing As Boolean)
-            If Not Me.audioExtractor Is Nothing Then
-                If Not disposing AndAlso Me.audioExtractor.VideoPath Is Nothing Then
-                    Try
-                        File.Delete(Me.audioExtractor.VideoPath)
-                    Catch
-                    End Try
-                End If
-
-                Me.audioExtractor.Dispose()
-                Me.audioExtractor = Nothing
-            End If
-        End Sub
-
-        Private Sub Dispose(disposing As Boolean)
-            If disposing Then
-                If Not Me.fileStream Is Nothing Then
-                    Me.fileStream.Close()
-                    Me.fileStream = Nothing
-                End If
-
-                Me.CloseOutput(True)
-            End If
-        End Sub
-
+        ''' <summary>
+        ''' ' Find out the apropriate streamwriter, to use for the audio writing.
+        ''' </summary>
+        ''' <param name="mediaInfo">The media-info, contains the type of the audio stream.</param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
         Private Function GetAudioWriter(mediaInfo As UInteger) As IAudioExtractor
             Dim format As UInteger = mediaInfo >> 4
 
             Select Case format
                 Case 14, 2
                     Return New Mp3AudioExtractor(Me.outputPath)
-
                 Case 10
                     Return New AacAudioExtractor(Me.outputPath)
             End Select
 
             Dim typeStr As String
-
             Select Case format
                 Case 1
                     typeStr = "ADPCM"
-
                 Case 6, 5, 4
                     typeStr = "Nellymoser"
-
                 Case Else
                     typeStr = "format=" + format
             End Select
-
             Throw New AudioExtractionException("Unable to extract audio (" + typeStr + " is unsupported).")
         End Function
 
-        Private Function ReadBytes(length As Integer) As Byte()
-            Dim buff As Byte() = New Byte(length - 1) {}
-
-            Me.fileStream.Read(buff, 0, length)
-            Me.fileOffset += length
-
-            Return buff
-        End Function
-
         Private Function ReadTag() As Boolean
-            If Me.fileLength - Me.fileOffset < 11 Then
-                Return False
-            End If
-
+            If Me.fileLength - Me.fileOffset < 11 Then  Return False
+        
             ' Read tag header
             Dim tagType As UInteger = ReadUInt8()
             Dim dataSize As UInteger = ReadUInt24()
@@ -165,9 +153,7 @@ Namespace Extraction
             Me.ReadUInt24()
 
             ' Read tag data
-            If dataSize = 0 Then
-                Return True
-            End If
+            If dataSize = 0 Then Return True
 
             If Me.fileLength - Me.fileOffset < dataSize Then
                 Return False
@@ -187,11 +173,20 @@ Namespace Extraction
                 If Me.audioExtractor Is Nothing Then
                     Throw New InvalidOperationException("No supported audio writer found.")
                 End If
-
                 Me.audioExtractor.WriteChunk(data, timeStamp)
             End If
 
             Return True
+        End Function
+
+#Region "Readers"
+        Private Function ReadBytes(length As Integer) As Byte()
+            Dim buff As Byte() = New Byte(length - 1) {}
+
+            Me.fileStream.Read(buff, 0, length)
+            Me.fileOffset += length
+
+            Return buff
         End Function
 
         Private Function ReadUInt24() As UInteger
@@ -216,11 +211,13 @@ Namespace Extraction
             Me.fileOffset += 1
             Return Me.fileStream.ReadByte()
         End Function
-
         Private Sub Seek(offset As Long)
             Me.fileStream.Seek(offset, SeekOrigin.Begin)
             Me.fileOffset = offset
         End Sub
+#End Region
+
+
     End Class
 
 

@@ -3,50 +3,62 @@ Imports System.IO
 
 
 Namespace Extraction
-
+    Public Class MP3Frame
+        Public Property ChannelMode As Integer
+        Public Property BitRate As Integer
+        Public Property FirstFrameHeader As UInteger
+        Public Property MpegVersion As Integer
+        Public Property SampleRate As Integer
+    End Class
     Friend Class Mp3AudioExtractor
         Implements IAudioExtractor
 
+#Region "Static variables"
+        Shared mpeg1BitRate As Integer() = New Int32() {0, 32, 40, 48, 56, 64, _
+             80, 96, 112, 128, 160, 192, _
+             224, 256, 320, 0}
+        Shared mpeg2XBitRate As Integer() = New Int32() {0, 8, 16, 24, 32, 40, _
+                48, 56, 64, 80, 96, 112, _
+                128, 144, 160, 0}
+        Shared mpeg1SampleRate As Integer() = New Int32() {44100, 48000, 32000, 0}
+        Shared mpeg20SampleRate As Integer() = New Int32() {22050, 24000, 16000, 0}
+        Shared mpeg25SampleRate As Integer() = New Int32() {11025, 12000, 8000, 0}
+#End Region
+
 #Region "Variables"
-        Private ReadOnly chunkBuffer As List(Of Byte())
-        Private ReadOnly fileStream As FileStream
+
+        Private chunkBuffer As MemoryStream ' List(Of Byte())
+        Private p_videoStream As FileStream
         Private ReadOnly frameOffsets As List(Of UInteger)
         Private ls_warnings As List(Of String)
-        Private p_channelMode As Integer
-        Private delayWrite As Boolean
-        Private p_BitRate As Integer
-        Private p_firstFrameHeader As UInteger
+
         Private hasVbrHeader As Boolean
         Private isVbr As Boolean
-        Private p_mpegVersion As Integer
-        Private p_sampleRate As Integer
+        Private FrameInfo As New MP3Frame
         Private totalFrameLength As UInteger
         Private doWriteVbrHeader As Boolean
-        Private strVideoPath As String
+        Private delayWrite As Boolean
 #End Region
 
 #Region "Construction"
         Public Sub New(path As String)
-            Me.VideoPath = path
-            Me.fileStream = New FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024)
+            p_videoStream = New FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024)
             Me.ls_warnings = New List(Of String)()
-            Me.chunkBuffer = New List(Of Byte())()
+            Me.chunkBuffer = New MemoryStream
             Me.frameOffsets = New List(Of UInteger)()
             Me.delayWrite = True
         End Sub
 #End Region
 
 #Region "Props"
-        Public Property VideoPath As String Implements IAudioExtractor.VideoPath
+        Public Property VideoStream As FileStream Implements IAudioExtractor.VideoStream
             Get
-                Return strVideoPath
+                Return p_videoStream
             End Get
-            Private Set(val As String)
-                strVideoPath = val
+            Set(value As FileStream)
+                p_videoStream = value
             End Set
         End Property
-
-
         Public ReadOnly Property Warnings() As IEnumerable(Of String)
             Get
                 Return Me.ls_warnings
@@ -55,18 +67,32 @@ Namespace Extraction
 #End Region
 
 #Region "Freame writer"
-
+        ''' <summary>
+        ''' Writes the FLV Buffer, by extracting it to a MP3 Frame.
+        ''' </summary>
+        ''' <param name="chunk">The buffer to write</param>
+        ''' <param name="timeStamp">Not used</param>
+        ''' <remarks></remarks>
         Public Sub WriteChunk(chunk As Byte(), timeStamp As UInteger) Implements IAudioExtractor.WriteChunk
-            Me.chunkBuffer.Add(chunk)
-            Me.ParseMp3Frames(chunk)
-
+            Me.chunkBuffer.Write(chunk, 0, chunk.Length)
+            Me.ParseMp3Frame(chunk)
             If Me.delayWrite AndAlso Me.totalFrameLength >= 65536 Then
                 Me.delayWrite = False
             End If
-
             If Not Me.delayWrite Then
                 Me.Flush()
             End If
+        End Sub
+
+        Private Sub Flush()
+            Dim tmpBuff As Byte() = chunkBuffer.ToArray()
+
+            Me.p_videoStream.Write(tmpBuff, 0, tmpBuff.Length)
+            'For Each chunk As Byte() In chunkBuffer
+            '    Me.fileStream.Write(chunk, 0, chunk.Length)
+            'Next
+            chunkBuffer.Dispose()
+            chunkBuffer = New MemoryStream() 'Me.chunkBuffer.Clear()
         End Sub
 #End Region
 
@@ -76,31 +102,13 @@ Namespace Extraction
             Me.Flush()
 
             If Me.doWriteVbrHeader Then
-                Me.fileStream.Seek(0, SeekOrigin.Begin)
-                Me.WriteVbrHeader(False)
+                p_videoStream.Seek(0, SeekOrigin.Begin)
+                WriteVbrHeader(False)
             End If
 
-            Me.fileStream.Dispose()
+            Me.p_videoStream.Dispose()
         End Sub
 #End Region
-
-
-        Private Sub Flush()
-            For Each chunk As Byte() In chunkBuffer
-                Me.fileStream.Write(chunk, 0, chunk.Length)
-            Next
-
-            Me.chunkBuffer.Clear()
-        End Sub
-        Shared mpeg1BitRate As Integer() = New Int32() {0, 32, 40, 48, 56, 64, _
-                80, 96, 112, 128, 160, 192, _
-                224, 256, 320, 0}
-        Shared mpeg2XBitRate As Integer() = New Int32() {0, 8, 16, 24, 32, 40, _
-                48, 56, 64, 80, 96, 112, _
-                128, 144, 160, 0}
-        Shared mpeg1SampleRate As Integer() = New Int32() {44100, 48000, 32000, 0}
-        Shared mpeg20SampleRate As Integer() = New Int32() {22050, 24000, 16000, 0}
-        Shared mpeg25SampleRate As Integer() = New Int32() {11025, 12000, 8000, 0}
 
 #Region "Helpers"
         Private Shared Function GetFrameDataOffset(mpegVersion As Integer, channelMode As Integer) As Integer
@@ -180,19 +188,14 @@ Namespace Extraction
         End Function
 #End Region
 
-
-        Private Sub ParseMp3Frames(buffer As Byte())
+#Region "Parsing"
+        Private Sub ParseMp3Frame(buffer As Byte())
             Dim offset As Integer = 0
             Dim length As Integer = buffer.Length
 
             While length >= 4
-                Dim mpegVersion As Integer
-                Dim sampleRate As Integer
-                Dim channelMode As Integer
-                Dim layer As Integer
-                Dim bitRate As Integer
-                Dim padding As Integer
-
+                Dim mpegVersion, sampleRate, channelMode As Integer
+                Dim layer, bitRate, padding As Integer
                 Dim header As ULong = CULng(BigEndianBitConverter.ToUInt32(buffer, offset)) << 32
 
                 If BitHelper.Read(header, 11) <> &H7FF Then
@@ -200,9 +203,11 @@ Namespace Extraction
                 End If
 
                 getMp3FrameInfo(header, mpegVersion, layer, bitRate, padding, channelMode, sampleRate)
+
                 If mpegVersion = 1 OrElse layer <> 1 OrElse bitRate = 0 OrElse bitRate = 15 OrElse sampleRate = 3 Then
                     Exit While
                 End If
+
                 bitRate = (If(mpegVersion = 3, mpeg1BitRate(bitRate), mpeg2XBitRate(bitRate))) * 1000
                 calcSampleRate(mpegVersion, sampleRate)
                 Dim frameLenght As Integer = GetFrameLength(mpegVersion, bitRate, sampleRate, padding)
@@ -210,29 +215,8 @@ Namespace Extraction
                     Exit While
                 End If
 
-                Dim isVbrHeaderFrame As Boolean = checkForVBRHeader(buffer, frameOffsets, offset, mpegVersion, channelMode, Me)
+                ParseHeaderInformation(Me, offset, buffer, bitRate, mpegVersion, sampleRate, channelMode)
 
-                If Not isVbrHeaderFrame Then
-                    If Me.p_BitRate = 0 Then
-                        Me.p_BitRate = bitRate
-                        Me.p_mpegVersion = mpegVersion
-                        Me.p_sampleRate = sampleRate
-                        Me.p_channelMode = channelMode
-                        Me.p_firstFrameHeader = BigEndianBitConverter.ToUInt32(buffer, offset)
-                    ElseIf Not Me.isVbr AndAlso bitRate <> Me.p_BitRate Then
-                        Me.isVbr = True
-
-                        If Not Me.hasVbrHeader Then
-                            If Me.delayWrite Then
-                                Me.WriteVbrHeader(True)
-                                Me.doWriteVbrHeader = True
-                                Me.delayWrite = False
-                            Else
-                                Me.ls_warnings.Add("Detected VBR too late, cannot add VBR header.")
-                            End If
-                        End If
-                    End If
-                End If
 
                 Me.frameOffsets.Add(Me.totalFrameLength + offset)
                 offset += frameLenght
@@ -242,31 +226,58 @@ Namespace Extraction
             Me.totalFrameLength += buffer.Length
         End Sub
 
+        Private Shared Sub ParseHeaderInformation(ByRef mp3Extractor As Mp3AudioExtractor, _
+                                                  offset As Int32, buffer As Byte(), bitrate As Int32, mpegVer As Int32, sampleRate As Int32, channelMode As Int32)
+            Dim isVbrHeaderFrame As Boolean = checkForVBRHeader(buffer, mp3Extractor.frameOffsets, offset, mpegVer, channelMode, mp3Extractor)
+            If Not isVbrHeaderFrame Then
+                With mp3Extractor.FrameInfo
+                    If .BitRate = 0 Then
+                        .BitRate = bitrate
+                        .MpegVersion = mpegVer
+                        .SampleRate = sampleRate
+                        .ChannelMode = channelMode
+                        .FirstFrameHeader = BigEndianBitConverter.ToUInt32(buffer, offset)
+                    ElseIf Not mp3Extractor.isVbr AndAlso bitrate <> .BitRate Then
+                        mp3Extractor.isVbr = True
+
+                        If Not mp3Extractor.hasVbrHeader Then
+                            If mp3Extractor.delayWrite Then
+                                mp3Extractor.WriteVbrHeader(True)
+                                mp3Extractor.doWriteVbrHeader = True
+                                mp3Extractor.delayWrite = False
+                            Else
+                                mp3Extractor.ls_warnings.Add("Detected VBR too late, cannot add VBR header.")
+                            End If
+                        End If
+                    End If
+                End With
+            End If
+        End Sub
+
         Private Sub WriteVbrHeader(isPlaceholder As Boolean)
-            Dim buffer As Byte() = New Byte(GetFrameLength(Me.p_mpegVersion, 64000, Me.p_sampleRate, 0)) {}
+            Dim buffer As Byte() = New Byte(GetFrameLength(FrameInfo.MpegVersion, 64000, FrameInfo.SampleRate, 0)) {}
 
             If Not isPlaceholder Then
-                Dim header As UInteger = Me.p_firstFrameHeader
-                Dim dataOffset As Integer = GetFrameDataOffset(Me.p_mpegVersion, Me.p_channelMode)
+                Dim header As UInteger = FrameInfo.FirstFrameHeader
+                Dim dataOffset As Integer = GetFrameDataOffset(FrameInfo.MpegVersion, FrameInfo.ChannelMode)
                 header = header And &HFFFE0DFFUI
-                header = header Or (If(p_mpegVersion = 3, 5, 8)) << 12
+                header = header Or (If(FrameInfo.MpegVersion = 3, 5, 8)) << 12
                 BitHelper.CopyBytes(buffer, 0, BigEndianBitConverter.GetBytes(header))
                 BitHelper.CopyBytes(buffer, dataOffset, BigEndianBitConverter.GetBytes(&H58696E67))
                 BitHelper.CopyBytes(buffer, dataOffset + 4, BigEndianBitConverter.GetBytes(&H7))
                 BitHelper.CopyBytes(buffer, dataOffset + 8, BigEndianBitConverter.GetBytes(frameOffsets.Count))
                 BitHelper.CopyBytes(buffer, dataOffset + 12, BigEndianBitConverter.GetBytes(totalFrameLength))
 
-                Dim i As Integer = 0
-                While i < 100
+                For i As Int32 = 0 To 99
                     Dim frameIndex As Integer = ((i / 100.0) * Me.frameOffsets.Count)
-
                     buffer(dataOffset + 16 + i) = (Me.frameOffsets(frameIndex) / Me.totalFrameLength * 256.0)
-                    System.Math.Max(System.Threading.Interlocked.Increment(i), i - 1)
-                End While
+                Next
             End If
 
-            Me.fileStream.Write(buffer, 0, buffer.Length)
+            Me.p_videoStream.Write(buffer, 0, buffer.Length)
         End Sub
+#End Region
+
     End Class
 
 
