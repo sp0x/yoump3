@@ -69,6 +69,7 @@ Public Class Youtube
             Else : Return VidStatus.Uploaded
             End If
         End If
+        Return VidStatus.Processing
     End Function
 
     Public Sub SetVideoRating(ByVal vid As Video, Optional ByVal rating As Int16 = 1)

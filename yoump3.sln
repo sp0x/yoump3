@@ -5,6 +5,13 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "yoump3", "yoump3\yoump3.vbproj", "{9C649305-CD88-487E-843E-A6533DFF3A0A}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ytDownloader", "..\ytDownloader\ytDownloader\ytDownloader.vbproj", "{B9321BAF-C6D3-4448-A08F-0685D179FF1C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E252902C-35AA-47C0-9457-CA82A67A5C4F}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +22,15 @@ Global
 		{9C649305-CD88-487E-843E-A6533DFF3A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C649305-CD88-487E-843E-A6533DFF3A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C649305-CD88-487E-843E-A6533DFF3A0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9321BAF-C6D3-4448-A08F-0685D179FF1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9321BAF-C6D3-4448-A08F-0685D179FF1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9321BAF-C6D3-4448-A08F-0685D179FF1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9321BAF-C6D3-4448-A08F-0685D179FF1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

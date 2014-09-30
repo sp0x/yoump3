@@ -6,11 +6,12 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9C649305-CD88-487E-843E-A6533DFF3A0A}</ProjectGuid>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>yoump3</RootNamespace>
     <AssemblyName>yoump3</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <MyType>Custom</MyType>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,7 +48,19 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>yoump3.Main</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>1412044062_191274.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
     <Reference Include="Google.GData.Client">
       <HintPath>..\..\Outshared\Outshared\bin\Release\Google.GData.Client.dll</HintPath>
     </Reference>
@@ -80,30 +93,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Extensions.vb" />
-    <Compile Include="Extraction\AacAudioExtractor.vb" />
-    <Compile Include="Extraction\AdaptiveType.vb" />
-    <Compile Include="Extraction\AudioDownloader.vb" />
-    <Compile Include="Extraction\AudioExtractionException.vb" />
-    <Compile Include="Extraction\AudioType.vb" />
-    <Compile Include="Extraction\BigEndianBitConverter.vb" />
-    <Compile Include="Extraction\BitHelper.vb" />
-    <Compile Include="Extraction\Downloader.vb" />
-    <Compile Include="Extraction\FlvFile.vb" />
-    <Compile Include="Extraction\HTMLEncoder.vb" />
-    <Compile Include="Extraction\IAudioExtractor.vb" />
-    <Compile Include="Extraction\MP3AudioExtractor.vb" />
-    <Compile Include="Extraction\ProgressEventArgs.vb" />
-    <Compile Include="Extraction\URLHelper.vb" />
-    <Compile Include="Extraction\VideoCodecInfo.vb" />
-    <Compile Include="Extraction\VideoDownloader.vb" />
-    <Compile Include="Extraction\VideoNotAvailableException.vb" />
-    <Compile Include="Extraction\VideoType.vb" />
-    <Compile Include="Extraction\YtParseException.vb" />
-    <Compile Include="Extraction\YtSignitureDecoder.vb" />
-    <Compile Include="Extraction\YtUrlDecoder.vb" />
+    <Compile Include="Main.vb" />
     <Compile Include="Settings.vb" />
-    <Compile Include="STD.vb" />
     <Compile Include="Youtube.vb" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -160,6 +151,7 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
     </EmbeddedResource>
+    <None Include="My Project\app.manifest" />
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
@@ -168,7 +160,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ytDownloader\ytDownloader\ytDownloader.vbproj">
+      <Project>{b9321baf-c6d3-4448-a08f-0685d179ff1c}</Project>
+      <Name>ytDownloader</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="1412044062_191274.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
