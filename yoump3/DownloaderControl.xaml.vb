@@ -30,7 +30,7 @@ Public Class DownloaderControl
         Dispatcher.Invoke(Sub()
 
                               Progress = prg.ProgressPercentage
-                              Text = prg.GetStatusString(Downloader.ToString())
+                              Text = prg.GetStatusString(Downloader.VideoCodec.ToString())
                           End Sub)
     End Sub
 
