@@ -3,15 +3,13 @@ Imports ytDownloader.Extraction
 Imports ytDownloader
 
 Public Class DownloaderControl
-#Region "update options"
-    Private _updateDelta As Double = 0
-    Public UpdateInterval As Double = 2D
-    Public Timer As New Stopwatch
-#End Region
 
 
     Public Sub New(dldr As Downloader)
         Downloader = dldr
+        If Not Downloader.Initialized Then
+            Throw New InvalidOperationException("Downloader is not initialized")
+        End If
         InitializeComponent()
         PgProgress.Minimum = 0
         PgProgress.MaxHeight = 100D

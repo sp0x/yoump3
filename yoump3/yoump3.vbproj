@@ -98,6 +98,7 @@
     <Compile Include="DownloaderControl.xaml.vb">
       <DependentUpon>DownloaderControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ImagingExtensions.vb" />
     <Compile Include="Settings.vb" />
     <Compile Include="VideoInfo.xaml.vb">
       <DependentUpon>VideoInfo.xaml</DependentUpon>

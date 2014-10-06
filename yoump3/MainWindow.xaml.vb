@@ -3,34 +3,55 @@ Imports ytDownloader
 Imports ytDownloader.Extraction
 
 Class MainWindow
-   
+    Public Class LazyList(Of T)
+        Inherits List(Of T)
+        Private _pRetriever As Func(Of List(Of T))
+
+        Public Sub New(retriever As Func(Of List(Of T)))
+            _pRetriever = retriever
+        End Sub
+
+        Public Sub Initialize()
+            AddRange(_pRetriever.Invoke())
+        End Sub
+        Public Function GetFirst() As T
+            Return _pRetriever.Invoke.FirstOrDefault
+        End Function
+    End Class
     
-
+#Region "Launchers"
     Public Sub Lded() Handles Me.Loaded
-        'Dim audiox As AudioDownloader = Downloader.Factory(Of AudioDownloader).Create("https://www.youtube.com/watch?v=Xz8aM8ZoAbA", "c:\test.mp3")
-        'AddHandler audiox.AudioExtractionProgressChanged, AddressOf updateHandler
-        'AddHandler audiox.DownloadProgressChanged, AddressOf updateHandler
-        'audiox.StartDownloadingThreaded()
-        'Return
 
-        'Dim yt As New Youtube("dblooddrinker@gmail.com", "samcred0carding")
-        'Dim ULU As ULong = ULong.MaxValue
-        'Dim videos As List(Of Google.YouTube.Video) = yt.SearchVideo("how to make tiramisu")
-        'For Each vid In videos
-        '    vid = vid
-        'Next
     End Sub
 
-    Public Sub LaunchDownload(dldr As Downloader)
-        Dispatcher.InvokeAsync(Sub()
-                                   Dim ctlDldr As New DownloaderControl(dldr)
-                                   SpDownloaders.Children.Add(ctlDldr)
-                                   ctlDldr.Downloader.StartAsync()
-                               End Sub)
+    Public Sub LaunchDownload(list As List(Of Downloader))
+      Dim wndVideo As New VideoInfo(list)
+        wndVideo.Owner = Me
+        If wndVideo.ShowDialog Then
+            Task.Factory.StartNew(Sub()
+                                      For Each dldr In list
+                                          Try
+                                              dldr = dldr.Initialize()
+                                              Dim ctlDldr As DownloaderControl
+                                              Dispatcher.Invoke(Sub()
+                                                                    ctlDldr = New DownloaderControl(dldr)
+                                                                    SpDownloaders.Children.Add(ctlDldr)
+                                                                    ctlDldr.Downloader.StartThreaded()
+                                                                End Sub)
+                                          Catch ex As Exception
+                                              Trace.WriteLine(ex.Message)
+                                          End Try
+                                      Next
+                                  End Sub)
+        End If
     End Sub
+    Public Sub LaunchDownload(dld As Downloader)
+        LaunchDownload(New List(Of Downloader)({dld}))
+    End Sub
+#End Region
+
 
     Public Sub HandleArguments(ops As Options)
-        Dim executor As Action(Of Downloader) = AddressOf LaunchDownload
         Dim tmpQuality As Int32
         If ops.Quality = "Highest" Then
             tmpQuality = Int32.MaxValue
@@ -39,10 +60,9 @@ Class MainWindow
         Else
             tmpQuality = CInt(ops.Quality)
         End If
-
         ' ReSharper disable once VBWarnings::BC42358
-        Downloader.Factory.CreateListAsync(ops.Link, ops.OutputPath, ops.OnlyVideo, ops.Format, tmpQuality, _
-                                  executor)
+        Dim list = Downloader.Factory.CreateList(ops.Link, ops.OutputPath, ops.OnlyVideo, ops.Format, tmpQuality, True)
+        LaunchDownload(list)
 
     End Sub
 
@@ -61,20 +81,21 @@ Class MainWindow
             If RbNone.IsChecked Then ops.Format = Nothing
             ops.Link = url
             ops.Quality = CbQuality.SelectedValue
+
             HandleArguments(ops)
         End If
     End Sub
 
-    Private Sub btnBrowseOutputPath_Click(sender As Object, e As RoutedEventArgs) Handles btnBrowseOutputPath.Click
-        Dim fop As folderbrowserdialog
+    Private Sub btnBrowseOutputPath_Click(sender As Object, e As RoutedEventArgs) Handles BtnBrowseOutputPath.Click
+        Dim fop As FolderBrowserDialog
         If fop.ShowDialog = Forms.DialogResult.OK Then
-            txtOutputPath.Text = fop.SelectedPath
+            TxtOutputPath.Text = fop.SelectedPath
         End If
     End Sub
 
 
 
-    Class Options
+    Public Class Options
         Public Property Format As String
         Public Property Quality As String
         Public Property OnlyVideo As Boolean
