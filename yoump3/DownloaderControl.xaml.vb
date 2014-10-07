@@ -17,6 +17,7 @@ Public Class DownloaderControl
         AddHandler Downloader.ExtractionProgressChanged, AddressOf OnExtractionProgressChanged
         AddHandler Downloader.DownloadFinished, AddressOf OnDownloadFinished
         Text = dldr.VideoCodec.ToString
+        ToolTip = dldr.OutputPath
     End Sub
 
 
@@ -73,4 +74,11 @@ Public Class DownloaderControl
         End Set
     End Property
 
+    Private Sub CtxOpFolder_Click(sender As Object, e As RoutedEventArgs) Handles CtxOpFolder.Click
+        Dim sDir As String = Downloader.OutputPath
+        sDir = System.IO.Path.GetDirectoryName(sDir)
+        Dim p As New ProcessStartInfo("cmd.exe")
+        p.Arguments = " /c explorer " & sDir
+        Process.Start(p)
+    End Sub
 End Class

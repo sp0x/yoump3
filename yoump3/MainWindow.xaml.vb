@@ -31,13 +31,14 @@ Class MainWindow
             Task.Factory.StartNew(Sub()
                                       For Each dldr In list
                                           Try
-                                              dldr = dldr.Initialize()
+                                              dldr.Initialize()
                                               Dim ctlDldr As DownloaderControl
-                                              Dispatcher.Invoke(Sub()
-                                                                    ctlDldr = New DownloaderControl(dldr)
-                                                                    SpDownloaders.Children.Add(ctlDldr)
-                                                                    ctlDldr.Downloader.StartThreaded()
-                                                                End Sub)
+                                              Dispatcher.Invoke( _
+                                                  Sub()
+                                                      ctlDldr = New DownloaderControl(dldr)
+                                                      SpDownloaders.Children.Add(ctlDldr)
+                                                      ctlDldr.Downloader.StartThreaded()
+                                                  End Sub)
                                           Catch ex As Exception
                                               Trace.WriteLine(ex.Message)
                                           End Try

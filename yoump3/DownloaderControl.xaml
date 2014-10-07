@@ -5,6 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" Height="35" Width="Auto">
     <Grid>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Name="CtxOpFolder">Open in folder</MenuItem>
+            </ContextMenu>
+        </Grid.ContextMenu>
         <TextBlock Width="Auto"  x:Name="TxtValue" TextWrapping="Wrap" Margin="0,0,32,18"/>
         <ProgressBar Width="Auto" x:Name="PgProgress" Margin="0,19,32,0" Value="0" Minimum="0" Maximum="100" Foreground="#FF7CCCF1"/>
         <Button x:Name="BtnCancel" Content="X" VerticalAlignment="Top" Height="35" FontWeight="Bold" FontFamily="OCR A Std" Foreground="Black" FontSize="18" HorizontalAlignment="Right" Width="17"/>
