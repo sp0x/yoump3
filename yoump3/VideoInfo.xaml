@@ -1,11 +1,29 @@
 ﻿<Window x:Class="VideoInfo"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="VideoInfo" Height="183.149" Width="578.507" ShowInTaskbar="False" ResizeMode="NoResize" Background="#FF404F4B"
+    Title="VideoInfo" Height="183.149" Width="578.507" ShowInTaskbar="False" ResizeMode="NoResize"
     x:Name="WndVideoInfo">
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF007E78" Offset="0.004"/>
+            <GradientStop Color="White" Offset="0.957"/>
+            <GradientStop Color="#FF2B938E" Offset="0.104"/>
+        </LinearGradientBrush>
+    </Window.Background>
     <Grid>
-        <Image DataContext="{Binding ElementName=WndVideoInfo}"
-               Source="{Binding Path=VideoImage}" Name="ImgVideo"  HorizontalAlignment="Left" Margin="10,10,0,10" Width="188" Stretch="Fill"/>
+        <Border  CornerRadius="10" 
+            Width="{Binding ElementName=ImgVideo, Path=Width}"
+            Height="{Binding ElementName=ImgVideo, Path=Height}" Margin="0,0,385,0"
+            >
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="5"
+                              Opacity=".5"
+                              ShadowDepth="3" />
+            </Border.Effect>
+            <Image DataContext="{Binding ElementName=WndVideoInfo}"
+              Source="{Binding Path=VideoImage}" Name="ImgVideo"  HorizontalAlignment="Left" Width="188" Stretch="Fill"/>
+           
+        </Border>
         <ScrollViewer Height="Auto" Width="Auto" Margin="203,10,10,35">
             <TextBlock DataContext="{Binding ElementName=WndVideoInfo}"
                        Text="{Binding Path=VideoInfo}"  Name="TxtInfo" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="Auto" Width="Auto">

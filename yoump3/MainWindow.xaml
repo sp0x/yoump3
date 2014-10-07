@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:yoump3="clr-namespace:yoump3"
     Title="YouMP3 - Youtube Downloader" Height="423.657" Width="682.403"
-        Background="#FF404F4B">
+        Background="White">
 
     <Window.Resources>
         <yoump3:VideoQuality x:Key="VideoQualities"/>
@@ -13,8 +13,8 @@
         <ScrollViewer Margin="10,58,10,33">
             <ScrollViewer.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#FF495D51" Offset="0"/>
-                    <GradientStop Color="#FFB6DEC7" Offset="1"/>
+                    <GradientStop Color="#72D7E016" Offset="0"/>
+                    <GradientStop Color="#5F00FFF3" Offset="1"/>
                 </LinearGradientBrush>
             </ScrollViewer.Background>
             <StackPanel Name="SpDownloaders" Height="Auto" Width="Auto"/>

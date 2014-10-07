@@ -79,6 +79,7 @@ Public Class DownloaderControl
         sDir = System.IO.Path.GetDirectoryName(sDir)
         Dim p As New ProcessStartInfo("cmd.exe")
         p.Arguments = " /c explorer " & sDir
+        p.CreateNoWindow = True
         Process.Start(p)
     End Sub
 End Class

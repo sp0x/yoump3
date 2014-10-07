@@ -7,7 +7,7 @@
     <Grid>
         <Grid.ContextMenu>
             <ContextMenu>
-                <MenuItem Name="CtxOpFolder">Open in folder</MenuItem>
+                <MenuItem Header="Open in folder" Name="CtxOpFolder"></MenuItem>
             </ContextMenu>
         </Grid.ContextMenu>
         <TextBlock Width="Auto"  x:Name="TxtValue" TextWrapping="Wrap" Margin="0,0,32,18"/>
