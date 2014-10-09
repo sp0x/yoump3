@@ -31,7 +31,7 @@ Class MainWindow
             Task.Factory.StartNew(Sub()
                                       For Each dldr In list
                                           Try
-                                              dldr.Initialize()
+                                              dldr = Downloader.Initialize(dldr)
                                               Dim ctlDldr As DownloaderControl
                                               Dispatcher.Invoke( _
                                                   Sub()
