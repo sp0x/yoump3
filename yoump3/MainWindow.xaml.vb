@@ -3,21 +3,6 @@ Imports ytDownloader
 Imports ytDownloader.Extraction
 
 Class MainWindow
-    Public Class LazyList(Of T)
-        Inherits List(Of T)
-        Private _pRetriever As Func(Of List(Of T))
-
-        Public Sub New(retriever As Func(Of List(Of T)))
-            _pRetriever = retriever
-        End Sub
-
-        Public Sub Initialize()
-            AddRange(_pRetriever.Invoke())
-        End Sub
-        Public Function GetFirst() As T
-            Return _pRetriever.Invoke.FirstOrDefault
-        End Function
-    End Class
     
 #Region "Launchers"
     Public Sub Lded() Handles Me.Loaded
